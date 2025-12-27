@@ -38,10 +38,9 @@ app.use(helmet());
 app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 app.use(express.json());
-app.use(rateLimiter);
 
-// Docs & Health
 setupSwagger(app);
+app.use(rateLimiter);
 
 app.get('/health', (req, res) => {
     res.json({

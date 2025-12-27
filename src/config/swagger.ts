@@ -10,7 +10,9 @@ const options: swaggerJsdoc.Options = {
             version: '1.0.0',
             description: 'Real-Time Collaborative Workspace Backend API'
         },
-        servers: [{ url: 'http://localhost:3000', description: 'Development' }],
+        servers: [
+            { url: process.env.NODE_ENV === 'production' ? '/' : 'http://localhost:3000', description: 'API Server' }
+        ],
         components: {
             securitySchemes: {
                 bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }
