@@ -88,7 +88,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: collab-worker
-    command: node dist/workers/job.worker.js
+    command: ["node", "dist/workers/job.worker.js"]
     environment:
       NODE_ENV: production
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/collaborative_workspace?schema=public
