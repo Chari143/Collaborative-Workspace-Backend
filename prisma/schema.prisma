@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  password      String
+  name          String
+  avatarUrl     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  ownedProjects     Project[]       @relation("ProjectOwner")
+  collaborations    Collaborator[]
+  refreshTokens     RefreshToken[]
+  
+  @@index([email])
+}
+
+model RefreshToken {
+  id          String   @id @default(uuid())
+  token       String   @unique
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  
+  @@index([token])
+  @@index([userId])
+}
+
+model Project {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  ownerId     String
+  owner       User      @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  settings    Json?     @default("{}") // Store project-specific settings
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  workspaces    Workspace[]
+  collaborators Collaborator[]
+  invitations   Invitation[] // Added for completeness, usually good to track invites
+  
+  @@index([ownerId])
+}
+
+model Workspace {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  projectId   String
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  meta        Json?     // For storing layout, preferences, etc.
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@index([projectId])
+}
+
+enum Role {
+  OWNER
+  COLLABORATOR
+  VIEWER
+}
+
+model Collaborator {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  role      Role     @default(COLLABORATOR)
+  joinedAt  DateTime @default(now())
+
+  @@unique([userId, projectId])
+  @@index([userId])
+  @@index([projectId])
+}
+
+model Invitation {
+  id        String   @id @default(uuid())
+  email     String
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  role      Role     @default(COLLABORATOR)
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  
+  @@index([email])
+  @@index([token])
+  @@unique([projectId, email]) // Prevent duplicate invites
+}

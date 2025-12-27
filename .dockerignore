@@ -1,0 +1,33 @@
+# Ignore everything by default
+*
+
+# Allow specific files
+!.gitignore
+!README.md
+!package.json
+!package-lock.json
+!tsconfig.json
+!jest.config.js
+!.eslintrc.js
+!.env.example
+!Dockerfile
+!docker-compose.yml
+!docker-entrypoint.sh
+
+# Allow directories
+!src/
+!src/**
+!prisma/
+!prisma/**
+!.github/
+!.github/**
+
+# Ignore build output in allowed directories
+dist/
+node_modules/
+coverage/
+
+# Ignore env files except example
+.env
+.env.local
+.env.*.local
