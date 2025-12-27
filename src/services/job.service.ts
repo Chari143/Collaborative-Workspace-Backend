@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Job, JobStatus, JobType } from '../models/job.model';
-import { addJob, getQueueStats } from '../queues/job.queue';
+import { addJob, getQueueStats, jobQueue } from '../queues/job.queue';
 import { ApiError } from '../middleware/error.middleware';
 import { CreateJobInput } from '../schemas/validation.schemas';
 
@@ -59,6 +59,17 @@ export class JobService {
         if (!job) throw new ApiError(404, 'Job not found');
         if (job.status !== JobStatus.PENDING) throw new ApiError(400, 'Can only cancel pending jobs');
 
+        // Remove from BullMQ queue
+        try {
+            const bullJob = await jobQueue.getJob(jobId);
+            if (bullJob) {
+                await bullJob.remove();
+            }
+        } catch (error) {
+            console.error('Failed to remove job from queue:', error);
+        }
+
+        // Update MongoDB status
         job.status = JobStatus.FAILED;
         job.error = 'Cancelled by user';
         job.completedAt = new Date();
